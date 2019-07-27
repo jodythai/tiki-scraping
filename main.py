@@ -47,6 +47,22 @@ def parser(url):
 	except Exception as err:
 		print_exception(err)
 
+# Parser function to retrieve and parse the HTML code of a website 
+def parser(url):
+	"""Get a parsed version of an URL"""
+
+	try:
+		# Retrieve plain HTML code
+		plain = requests.get(url).text
+
+		# Parse the plain content into structured one
+		soup = BeautifulSoup(plain, features="lxml")
+
+		return soup
+
+	except Exception as err:
+		print_exception(err)
+
 def scrape_products(cat_id, cat_name, url):
 	"""Scrape product information of all products on one page"""
 
@@ -66,6 +82,7 @@ def scrape_products(cat_id, cat_name, url):
 		
 		# If the page has products
 		else: 
+      # Set default values for some variables
 			rating = -1
 			tiki_now = ''
 			product_url = ''
@@ -74,22 +91,35 @@ def scrape_products(cat_id, cat_name, url):
 			# Iterate through all product_items and store the product information in the 'row' list
 			for product in product_items:
 				
+        		# Extract the rating value
 				if len(product.select('.rating-content > span')) > 0:
 					rating = product.select_one('.rating-content > span')["style"]
 					rating = rating.replace('width:', '').replace('%', '')
 				
+        		# Extract the number of reviews value
 				if len(product.select('.review-wrap .review')) > 0:
 					review_total = product.select_one('.review-wrap .review').string
 					review_total = review_total[review_total.find('(')+1:review_total.find(' ')]
 
+				# Extract the regular price
 				price_regular = product.find('span', class_="price-regular").text
 				if price_regular != '':
 					price_regular = price_regular[0:-2].replace('.', '')
 				else:
 					price_regular = -1
 
+				# Extract the final price
+				price_final = product.get('data-price')
+				if price_final == '':
+						price_final = -1
+
+				# Extract the Tiki Now value
 				tiki_now = True if len(product.select('i.icon-tikinow')) > 0 else False
+
+				# Extract the product url
 				product_url = product.select_one('a')['href']
+
+				# Add the insert to db date
 				insert_date = datetime.datetime.now()
 
 				row = 	{	'product_id' : product.get('data-id'), 
@@ -157,11 +187,11 @@ def create_db_table__products():
 		sql = 	"CREATE TABLE IF NOT EXISTS " + tbl_prefix + "products \
 				(product_id integer NOT NULL PRIMARY KEY, \
 				seller_id integer NOT NULL, \
-				cat_id integer NOT NULL, \
+				cat_id integer NOT NULL REFERENCES " + tbl_prefix + "categories(cat_id), \
 				title text NOT NULL, \
 				image_url text, \
-				price_regular varchar(255), \
-				price_final varchar(255), \
+				price_regular integer, \
+				price_final integer, \
 				rating float, \
 				tiki_now boolean, \
 				product_url text NOT NULL, \
@@ -343,8 +373,8 @@ def select_from_db(sql):
 		# If the input variable starts with the table prefix, then this is the standard SELECT query
 		# Otherwise, we will use the input value as the query
 		if sql.startswith(tbl_prefix):
-			sql = "SELECT * FROM " + tbl_prefix + "categories"
-
+			sql = "SELECT * FROM " + sql
+	
 		cursor.execute(sql)
 
 		list_results = cursor.fetchall()
@@ -361,17 +391,17 @@ def select_from_db(sql):
 		conn.close()
 
 # Create necessary database tables
-#create_db_table__categories()
-#create_db_table__products()
+create_db_table__categories()
+create_db_table__products()
 
 # scrape all categories from tiki.vn and insert into the database
-#insert_to_db__categories()
+insert_to_db__categories()
 
 # scrape all products from tiki.vn and insert into the database
-#insert_to_db__products()
+insert_to_db__products()
 
 # Get the list of 10 latest products
-sql = "SELECT * FROM " + tbl_prefix + "products ORDER BY insert_date DESC LIMIT 10"
+#sql = "SELECT * FROM " + tbl_prefix + "products ORDER BY insert_date DESC LIMIT 10"
 
-list_products = select_from_db(sql)
-print(list_products)
+#list_products = select_from_db(sql)
+#print(list_products)
