@@ -25,7 +25,7 @@ def connect_to_db():
 										password = 'P@ssw0rd',
 										host = "127.0.0.1",
 										port = "5432",
-										database = "fansipan_week2_test1")
+										database = "fansipan_week2")
 		return connection
 
 	except (Exception, psycopg2.Error) as err:
