@@ -1,5 +1,5 @@
 ### Data restoration
-Use the file backup/db/homework_week_2.sql to restore the needed data to Portgres database.
+Use the file backup/db/homework_week2.sql to restore the needed data to Portgres database.
 
 # Project Description
 In this project, we create a scraper program that visits the e-commerce website TIKI at https://tiki.vn, reads its categories & products content, extracts the information and insert into our Portgres database.
