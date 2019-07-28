@@ -25,26 +25,10 @@ def connect_to_db():
 										password = 'P@ssw0rd',
 										host = "127.0.0.1",
 										port = "5432",
-										database = "fansipan_week2")
+										database = "fansipan_week2_test1")
 		return connection
 
 	except (Exception, psycopg2.Error) as err:
-		print_exception(err)
-
-# Parser function to retrieve and parse the HTML code of a website 
-def parser(url):
-	"""Get a parsed version of an URL"""
-
-	try:
-		# Retrieve plain HTML code
-		plain = requests.get(url).text
-
-		# Parse the plain content into structured one
-		soup = BeautifulSoup(plain, features="lxml")
-
-		return soup
-
-	except Exception as err:
 		print_exception(err)
 
 # Parser function to retrieve and parse the HTML code of a website 
@@ -82,7 +66,8 @@ def scrape_products(cat_id, cat_name, url):
 		
 		# If the page has products
 		else: 
-      # Set default values for some variables
+      		
+			# Set default values for some variables
 			rating = -1
 			tiki_now = ''
 			product_url = ''
@@ -110,7 +95,7 @@ def scrape_products(cat_id, cat_name, url):
 
 				# Extract the final price
 				price_final = product.get('data-price')
-				if price_final == '':
+				if price_final == '' or price_final == None:
 						price_final = -1
 
 				# Extract the Tiki Now value
@@ -128,7 +113,7 @@ def scrape_products(cat_id, cat_name, url):
 							'title' : product.get('data-title'),
 							'image_url' : product.img['src'],
 							'price_regular' : price_regular,
-							'price_final' : product.get('data-price'),
+							'price_final' : price_final,
 							'rating' : rating,
 							'tiki_now' : tiki_now,
 							'product_url' : product_url,
@@ -355,8 +340,8 @@ def insert_to_db__products():
 def select_from_db(sql):
 	"""
 	This function will execute the SELECT query and return the list of results
-	1. if input is the table name, it will return the list of results from that table
-	2. if input is the sql query, it will execute that query and return the according results
+	1. If the input is a table name, it will return a list of all rows from that table
+	2. If the input is a SQL query, it will execute that query and return the desire results
 	"""
 	try:
 		
@@ -391,11 +376,11 @@ def select_from_db(sql):
 		conn.close()
 
 # Create necessary database tables
-create_db_table__categories()
+#create_db_table__categories()
 create_db_table__products()
 
 # scrape all categories from tiki.vn and insert into the database
-insert_to_db__categories()
+#insert_to_db__categories()
 
 # scrape all products from tiki.vn and insert into the database
 insert_to_db__products()
